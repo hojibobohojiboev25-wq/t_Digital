@@ -36,3 +36,23 @@ build/
 # Temporary files
 tmp/
 temp/
+
+# Static files in root (served from public/)
+index.html
+pages/
+css/
+js/
+images/
+languages/
+data/
+robots.txt
+sitemap.xml
+404.html
+favicon.ico
+admin/
+
+# Keep only API routes and config files
+!api/
+!vercel.json
+!package.json
+!.vercelignore
