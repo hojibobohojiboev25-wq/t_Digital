@@ -231,9 +231,26 @@
 
         async function loadLanguage(lang) {
             try {
-                const response = await fetch(`/api/lang/${lang}`);
-                const data = await response.json();
-                currentTranslations = data.translations;
+                // Try Vercel API first, fallback to local storage
+                let translations = null;
+
+                try {
+                    const response = await fetch(`/api/lang/${lang}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        translations = data.translations;
+                    }
+                } catch (apiError) {
+                    console.log('API not available, using local translations');
+                }
+
+                // Fallback to local translations if API fails
+                if (!translations) {
+                    const fs = await import('./languages/' + lang + '.json');
+                    translations = fs.default;
+                }
+
+                currentTranslations = translations;
                 applyTranslations();
                 localStorage.setItem('selectedLanguage', lang);
             } catch (error) {

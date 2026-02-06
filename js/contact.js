@@ -63,7 +63,68 @@ function initContactForm() {
             });
         }
 
-        // Form submission is handled in main.js
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+
+            // Validation
+            if (!data.name || !data.email || !data.message) {
+                showMessage('Пожалуйста, заполните все обязательные поля', 'error');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(data.email)) {
+                showMessage('Пожалуйста, введите корректный email', 'error');
+                return;
+            }
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Отправка...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showMessage('Спасибо! Ваше сообщение отправлено.', 'success');
+                    form.reset();
+                } else {
+                    showMessage(result.error || 'Ошибка при отправке', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Ошибка при отправке сообщения', 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showMessage(message, type) {
+            const existing = form.querySelector('.form-message');
+            if (existing) existing.remove();
+
+            const msg = document.createElement('div');
+            msg.className = `form-message ${type}`;
+            msg.textContent = message;
+            msg.style.cssText = type === 'success'
+                ? 'color: #10b981; background: #d1fae5; padding: 12px; border-radius: 6px; margin-bottom: 16px;'
+                : 'color: #dc2626; background: #fee2e2; padding: 12px; border-radius: 6px; margin-bottom: 16px;';
+
+            form.insertBefore(msg, form.firstChild);
+            setTimeout(() => msg.remove(), 5000);
+        }
     }
 }
 
